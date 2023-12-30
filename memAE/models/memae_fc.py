@@ -10,22 +10,23 @@ class AutoEncoderFCMem(nn.Module):
         print('AutoEncoderFCMem')
         self.in_col_dim = in_col_dim
         self.mem_dim = mem_dim
-        feature_num = mem_dim//8
-        feature_num_2 = mem_dim//4
-        feature_num_x2 = mem_dim//2
+        mem_f = 16
+        feature_num = mem_f//8
+        feature_num_2 = mem_f//4
+        feature_num_x2 = mem_f//2
         self.encoder = nn.Sequential(
             nn.Linear(in_features=self.in_col_dim, out_features=feature_num, bias=True),
             nn.BatchNorm1d(num_features=feature_num),
             nn.LeakyReLU(0.2, inplace=True),
-
+            # nn.GELU(),
             nn.Linear(in_features=feature_num, out_features=feature_num_2, bias=True),
             nn.BatchNorm1d(num_features=feature_num_2),
             nn.LeakyReLU(0.2, inplace=True),
-
+            # nn.GELU(),
             nn.Linear(in_features=feature_num_2, out_features=feature_num_x2, bias=True),
             nn.BatchNorm1d(num_features=feature_num_x2),
             nn.LeakyReLU(0.2, inplace=True),
-            
+            # nn.GELU(),
             nn.Linear(in_features=feature_num_x2, out_features=feature_num_x2, bias=True),
             nn.BatchNorm1d(num_features=feature_num_x2),
             nn.LeakyReLU(0.2, inplace=True)
@@ -35,19 +36,20 @@ class AutoEncoderFCMem(nn.Module):
             nn.Linear(in_features=feature_num_x2, out_features=feature_num_x2, bias=True),
             nn.BatchNorm1d(num_features=feature_num_x2),
             nn.LeakyReLU(0.2, inplace=True),
-
+            # nn.GELU(),
             nn.Linear(in_features=feature_num_x2, out_features=feature_num_2, bias=True),
             nn.BatchNorm1d(num_features=feature_num_2),
             nn.LeakyReLU(0.2, inplace=True),
-
+            # nn.GELU(),
             nn.Linear(in_features=feature_num_2, out_features=feature_num, bias=True),
             nn.BatchNorm1d(num_features=feature_num),
             nn.LeakyReLU(0.2, inplace=True),
-            
+            # nn.GELU(),
             nn.Linear(in_features=feature_num, out_features=self.in_col_dim, bias=True)
         )
 
     def forward(self, x):
+        att=0
         f = self.encoder(x)
         res_mem = self.mem_rep(f)
         f = res_mem['output']

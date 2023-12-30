@@ -3,7 +3,8 @@
 # 1. Give overview on how to use the model
 # 2. Basic Demo with dummy data
 
-
+import os
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
 import random
 import pandas as pd
 import numpy as np
@@ -33,17 +34,19 @@ print('\n\n')
 X_train_t, X_valid_t, X_test_t = map(
     torch.tensor, (X_train, X_valid, X_test)
 )
-
+X_train_t = X_train_t.float()
+X_valid_t = X_valid_t.float()
+X_test_t = X_test_t.float()
 
 # Hyper-Parameter
 batch_size = 1024
 version = '1'
 in_col_dim = 2 # number of feature columns in the data
-mem_dim = 1024
-shrink_thres = 0.00025
-learning_rate = 0.9
+mem_dim = 16
+shrink_thres = 0.0025
+learning_rate = 0.3
 regularization_parameter = 0.0001
-epochs = 5
+epochs = 100
 
 
 PATH = f'./memAE/checkpoint/{version}/'
@@ -64,6 +67,12 @@ avg_val_loss = []
 val_loss = []
 train_loss = []
 
+
+train_ds = VectorDataset(X_train_t, X_train_t)
+train_dl = DataLoader(train_ds, batch_size=batch_size,shuffle=True)
+valid_ds = VectorDataset(X_valid_t, X_valid_t)
+valid_dl = DataLoader(valid_ds, batch_size=batch_size)
+
 for epoch in range(epochs):
     
     # Training Part
@@ -74,7 +83,7 @@ for epoch in range(epochs):
         pred = model(xb.float())
         loss = memae_loss(prediction=pred, ground_truth=yb, training=True)
         batch_train_loss.append(loss)
-        train_loss.append(loss)
+        train_loss.append(loss.detach().numpy())
         loss.backward()
         optimizer.step()
         
@@ -86,7 +95,7 @@ for epoch in range(epochs):
             pred = model(xb.float())
             loss = memae_loss(prediction=pred, ground_truth=yb, validating=True)
             batch_valid_loss.append(loss)
-            val_loss.append(loss)
+            val_loss.append(loss.detach().numpy())
             
     avg_train_loss.append(sum(batch_train_loss)/len(train_dl))
     avg_val_loss.append(sum(batch_valid_loss)/len(valid_dl))
