@@ -55,4 +55,5 @@ class AutoEncoderFCMem(nn.Module):
         f = res_mem['output']
         att = res_mem['att']
         output = self.decoder(f)
-        return {'output': output, 'att': att}
+        mem = res_mem['mem']
+        return {'output': output, 'att': att,'mem':mem}

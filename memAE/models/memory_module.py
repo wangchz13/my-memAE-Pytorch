@@ -33,7 +33,7 @@ class MemoryUnit(nn.Module):
             att_weight = F.normalize(att_weight, p=1, dim=1)
         mem_trans = self.weight.permute(1, 0)  # Mem^T, matrix of size C x M is the result as  weights are of dimension M x C
         output = F.linear(att_weight, mem_trans)  # AttWeight x Mem^T^T = AW x Mem, attention weights (NxM) x (MxC) = NxC
-        return {'output': output, 'att': att_weight}  # output (N x C), att_weight (N X M)
+        return {'output': output, 'att': att_weight,'mem':self.weight}  # output (N x C), att_weight (N X M)
 
     def extra_repr(self):
         return 'mem_dim={}, fea_dim={}'.format(
@@ -73,7 +73,7 @@ class MemModule(nn.Module):
         #
         y = y_and['output']
         att = y_and['att']
-
+        mem = y_and['mem']
         if l==2:
             y = y.view(s[0], s[1])
             y = y.permute(0, 1)
@@ -98,7 +98,7 @@ class MemModule(nn.Module):
             y = x
             att = att
             print('wrong feature map size')
-        return {'output': y, 'att': att}
+        return {'output': y, 'att': att,'mem':mem}
 
 # relu based hard shrinkage function, only works for positive values
 def hard_shrink_relu(input, lambd=0, epsilon=1e-12):
